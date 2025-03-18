@@ -16,7 +16,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Clone the repository
-                git branch: 'main', url: 'https://github.com/MuthomiGuantai/Hospital'
+                git branch: 'main', url: 'https://github.com/MuthomiGuantai/Jenkins_Test'
             }
         }
         stage('Build All') {
