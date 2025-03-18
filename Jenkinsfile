@@ -44,21 +44,21 @@ pipeline {
                 }
                 stage('Build Medical Service') {
                     steps {
-                        dir('Medical-Service') {
+                        dir('Medical_Service') {
                             sh 'mvn clean package -DskipTests'
                         }
                     }
                 }
                 stage('Build Patient Service') {
                     steps {
-                        dir('Patient-Service') {
+                        dir('Patient_Service') {
                             sh 'mvn clean package -DskipTests'
                         }
                     }
                 }
                 stage('Build Department Service') {
                     steps {
-                        dir('Department-Service') {
+                        dir('Department_Service') {
                             sh 'mvn clean package -DskipTests'
                         }
                     }
