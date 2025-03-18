@@ -68,12 +68,12 @@ pipeline {
         stage('Deploy Dependencies') {
             steps {
                 // Deploy Service Registry (Eureka) first
-                dir('Service-Registry') {
+                dir('Service_Registry') {
                     sh 'java -jar target/Service_Registry-0.0.1-SNAPSHOT.jar &'
                     sleep 20 // Wait for Eureka to start
                 }
                 // Deploy Config Server next
-                dir('Config-Server') {
+                dir('Config_Server') {
                     sh 'java -jar target/Config_Server-0.0.1-SNAPSHOT.jar &'
                     sleep 20 // Wait for Config Server to start
                 }
