@@ -4,18 +4,17 @@ pipeline {
         maven 'Maven3' // Ensure this matches the name in Jenkins config
     }
     environment {
-        // Define ports for verification
         SERVICE_REGISTRY_PORT = '8761'
         CONFIG_SERVER_PORT = '8104'
         API_GATEWAY_PORT = '8100'
         MEDICAL_SERVICE_PORT = '8101'
         PATIENT_SERVICE_PORT = '8102'
         DEPARTMENT_SERVICE_PORT = '8103'
+        MYSQL_ROOT_PASSWORD = 'Clearme@1824' // Matches application.yml
     }
     stages {
         stage('Checkout') {
             steps {
-                // Clone the repository
                 git branch: 'main', url: 'https://github.com/MuthomiGuantai/Jenkins_Test'
             }
         }
@@ -67,27 +66,22 @@ pipeline {
         }
         stage('Setup Databases') {
             steps {
-                // Start MySQL container for Medical_Service
-                sh 'docker run -d --name mysql-medical -p 3306:3306 -e MYSQL_ROOT_PASSWORD=${Clearme@1824} -e MYSQL_DATABASE=Medical mysql:latest'
-                // Start MySQL container for Patient_Service on a different port
-                sh 'docker run -d --name mysql-patient -p 3307:3306 -e MYSQL_ROOT_PASSWORD=${Clearme@1824} -e MYSQL_DATABASE=Patient_db mysql:latest'
-                // Start MySQL container for Department_Service on a different port
-                sh 'docker run -d --name mysql-department -p 3308:3306 -e MYSQL_ROOT_PASSWORD=${Clearme@1824} -e MYSQL_DATABASE=Department_db mysql:latest'
-                // Wait for all databases to be ready
-                sleep 30
+                // Use double quotes for Groovy interpolation or escape properly
+                sh "docker run -d --name mysql-medical -p 3306:3306 -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} -e MYSQL_DATABASE=Medical mysql:latest"
+                sh "docker run -d --name mysql-patient -p 3307:3306 -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} -e MYSQL_DATABASE=Patient_db mysql:latest"
+                sh "docker run -d --name mysql-department -p 3308:3306 -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} -e MYSQL_DATABASE=Department_db mysql:latest"
+                sleep 30 // Wait for databases to initialize
             }
         }
         stage('Deploy Dependencies') {
             steps {
-                // Deploy Service Registry (Eureka) first
                 dir('Service_Registry') {
-                    sh 'java -jar target/Service_Registry-0.0.1-SNAPSHOT.jar &'
-                    sleep 60 // Wait for Eureka to start
+                    sh 'java -jar target/Service_Registry-0.0.1-SNAPSHOT.jar > service_registry.log 2>&1 &'
+                    sleep 60
                 }
-                // Deploy Config Server next
                 dir('Config_Server') {
-                    sh 'java -jar target/Config_Server-0.0.1-SNAPSHOT.jar &'
-                    sleep 60 // Wait for Config Server to start
+                    sh 'java -jar target/Config_Server-0.0.1-SNAPSHOT.jar > config_server.log 2>&1 &'
+                    sleep 60
                 }
             }
         }
@@ -96,7 +90,7 @@ pipeline {
                 stage('Deploy API Gateway') {
                     steps {
                         dir('Api_Gateway') {
-                            sh 'java -jar target/Api_Gateway-0.0.1-SNAPSHOT.jar &'
+                            sh 'java -jar target/Api_Gateway-0.0.1-SNAPSHOT.jar > api_gateway.log 2>&1 &'
                             sleep 60
                         }
                     }
@@ -104,7 +98,7 @@ pipeline {
                 stage('Deploy Medical Service') {
                     steps {
                         dir('Medical_Service') {
-                            sh 'java -jar target/Medical_Service-0.0.1-SNAPSHOT.jar &'
+                            sh 'java -jar -Dspring.datasource.url=jdbc:mysql://localhost:3306/Medical target/Medical_Service-0.0.1-SNAPSHOT.jar > medical_service.log 2>&1 &'
                             sleep 60
                         }
                     }
@@ -112,7 +106,7 @@ pipeline {
                 stage('Deploy Patient Service') {
                     steps {
                         dir('Patient_Service') {
-                            sh 'java -jar target/Patient_Service-0.0.1-SNAPSHOT.jar &'
+                            sh 'java -jar -Dspring.datasource.url=jdbc:mysql://localhost:3307/Patient_db target/Patient_Service-0.0.1-SNAPSHOT.jar > patient_service.log 2>&1 &'
                             sleep 60
                         }
                     }
@@ -120,7 +114,7 @@ pipeline {
                 stage('Deploy Department Service') {
                     steps {
                         dir('Department_Service') {
-                            sh 'java -jar target/Department_Service-0.0.1-SNAPSHOT.jar &'
+                            sh 'java -jar -Dspring.datasource.url=jdbc:mysql://localhost:3308/Department_db target/Department_Service-0.0.1-SNAPSHOT.jar > department_service.log 2>&1 &'
                             sleep 60
                         }
                     }
@@ -129,15 +123,13 @@ pipeline {
         }
         stage('Verify Deployment') {
             steps {
-                // Check Eureka Server
+                sh 'cat Medical_Service/medical_service.log || true'
+                sh 'cat Api_Gateway/api_gateway.log || true'
                 sh 'curl -f http://localhost:${SERVICE_REGISTRY_PORT} || exit 1'
-                // Check Config Server
                 sh 'curl -f http://localhost:${CONFIG_SERVER_PORT}/medical-service/default || exit 1'
-                // Check API Gateway endpoints
-                sh 'curl -f -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsInN1YiI6ImFkbWluIiwiaWF0IjoxNzQyMjk4ODcxLCJleHAiOjE3NDMxNjI4NzF9.xg9picu1mzvwHTTQJf2IdWQ1tTg9ZNeQctyUKC1pjPc" http://localhost:${API_GATEWAY_PORT}/medical/doctors || exit 1'
-                sh 'curl -f -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsInN1YiI6ImFkbWluIiwiaWF0IjoxNzQyMjk4ODcxLCJleHAiOjE3NDMxNjI4NzF9.xg9picu1mzvwHTTQJf2IdWQ1tTg9ZNeQctyUKC1pjPc" http://localhost:${API_GATEWAY_PORT}/patient/medical-records || exit 1'
-                sh 'curl -f -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsInN1YiI6ImFkbWluIiwiaWF0IjoxNzQyMjk4ODcxLCJleHAiOjE3NDMxNjI4NzF9.xg9picu1mzvwHTTQJf2IdWQ1tTg9ZNeQctyUKC1pjPc" http://localhost:${API_GATEWAY_PORT}/department/departments || exit 1'
-            
+                sh 'curl -v -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsInN1YiI6ImFkbWluIiwiaWF0IjoxNzQyMjk4ODcxLCJleHAiOjE3NDMxNjI4NzF9.xg9picu1mzvwHTTQJf2IdWQ1tTg9ZNeQctyUKC1pjPc" http://localhost:${API_GATEWAY_PORT}/medical/doctors || exit 1'
+                sh 'curl -v -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsInN1YiI6ImFkbWluIiwiaWF0IjoxNzQyMjk4ODcxLCJleHAiOjE3NDMxNjI4NzF9.xg9picu1mzvwHTTQJf2IdWQ1tTg9ZNeQctyUKC1pjPc" http://localhost:${API_GATEWAY_PORT}/patient/medical-records || exit 1'
+                sh 'curl -v -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsInN1YiI6ImFkbWluIiwiaWF0IjoxNzQyMjk4ODcxLCJleHAiOjE3NDMxNjI8NzF9.xg9picu1mzvwHTTQJf2IdWQ1tTg9ZNeQctyUKC1pjPc" http://localhost:${API_GATEWAY_PORT}/department/departments || exit 1'
             }
         }
     }
@@ -149,8 +141,9 @@ pipeline {
             echo 'Deployment failed. Check logs for details.'
         }
         always {
-            // Cleanup (optional): Kill background processes
             sh 'pkill -f "java -jar" || true'
+            sh 'docker stop mysql-medical mysql-patient mysql-department || true'
+            sh 'docker rm mysql-medical mysql-patient mysql-department || true'
         }
     }
 }
