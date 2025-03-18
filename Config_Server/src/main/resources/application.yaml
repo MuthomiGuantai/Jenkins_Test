@@ -2,10 +2,21 @@ server:
   port: 8104
 
 spring:
-  profiles:
-    active: native
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/MuthomiGuantai/Jenkins_Test
+          search-paths: Config_Server
+          default-label: main
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://service-registry:8761/eureka/
+    enabled: true
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
