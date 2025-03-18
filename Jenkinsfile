@@ -118,13 +118,14 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 // Check Eureka Server
-                sh "curl -f http://localhost:${SERVICE_REGISTRY_PORT} || exit 1"
+                sh 'curl -f http://localhost:${SERVICE_REGISTRY_PORT} || exit 1'
                 // Check Config Server
-                sh "curl -f http://localhost:${CONFIG_SERVER_PORT}/medical-service/default || exit 1"
+                sh 'curl -f http://localhost:${CONFIG_SERVER_PORT}/medical-service/default || exit 1'
                 // Check API Gateway endpoints
-                sh "curl -f -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsInN1YiI6ImFkbWluIiwiaWF0IjoxNzQyMjk4ODcxLCJleHAiOjE3NDMxNjI4NzF9.xg9picu1mzvwHTTQJf2IdWQ1tTg9ZNeQctyUKC1pjPc" http://localhost:${API_GATEWAY_PORT}/medical/doctors || exit 1"
-                sh "curl -f -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsInN1YiI6ImFkbWluIiwiaWF0IjoxNzQyMjk4ODcxLCJleHAiOjE3NDMxNjI4NzF9.xg9picu1mzvwHTTQJf2IdWQ1tTg9ZNeQctyUKC1pjPc" http://localhost:${API_GATEWAY_PORT}/patient/medical-records || exit 1"
-                sh "curl -f -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsInN1YiI6ImFkbWluIiwiaWF0IjoxNzQyMjk4ODcxLCJleHAiOjE3NDMxNjI4NzF9.xg9picu1mzvwHTTQJf2IdWQ1tTg9ZNeQctyUKC1pjPc" http://localhost:${API_GATEWAY_PORT}/department/departments || exit 1"
+                sh 'curl -f -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsInN1YiI6ImFkbWluIiwiaWF0IjoxNzQyMjk4ODcxLCJleHAiOjE3NDMxNjI4NzF9.xg9picu1mzvwHTTQJf2IdWQ1tTg9ZNeQctyUKC1pjPc" http://localhost:${API_GATEWAY_PORT}/medical/doctors || exit 1'
+                sh 'curl -f -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsInN1YiI6ImFkbWluIiwiaWF0IjoxNzQyMjk4ODcxLCJleHAiOjE3NDMxNjI4NzF9.xg9picu1mzvwHTTQJf2IdWQ1tTg9ZNeQctyUKC1pjPc" http://localhost:${API_GATEWAY_PORT}/patient/medical-records || exit 1'
+                sh 'curl -f -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsInN1YiI6ImFkbWluIiwiaWF0IjoxNzQyMjk4ODcxLCJleHAiOjE3NDMxNjI4NzF9.xg9picu1mzvwHTTQJf2IdWQ1tTg9ZNeQctyUKC1pjPc" http://localhost:${API_GATEWAY_PORT}/department/departments || exit 1'
+            
             }
         }
     }
