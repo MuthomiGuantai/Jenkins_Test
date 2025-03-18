@@ -1,7 +1,9 @@
 pipeline {
-    agent any
+    agent {
+        label 'docker' // Ensure this node has Docker installed
+    }
     tools {
-        maven 'Maven3' // Ensure this matches the name in Jenkins config
+        maven 'Maven3'
     }
     environment {
         SERVICE_REGISTRY_PORT = '8761'
@@ -10,7 +12,7 @@ pipeline {
         MEDICAL_SERVICE_PORT = '8101'
         PATIENT_SERVICE_PORT = '8102'
         DEPARTMENT_SERVICE_PORT = '8103'
-        MYSQL_ROOT_PASSWORD = 'Clearme@1824' // Matches application.yml
+        MYSQL_ROOT_PASSWORD = 'Clearme@1824'
     }
     stages {
         stage('Checkout') {
@@ -66,11 +68,10 @@ pipeline {
         }
         stage('Setup Databases') {
             steps {
-                // Use double quotes for Groovy interpolation or escape properly
                 sh "docker run -d --name mysql-medical -p 3306:3306 -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} -e MYSQL_DATABASE=Medical mysql:latest"
                 sh "docker run -d --name mysql-patient -p 3307:3306 -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} -e MYSQL_DATABASE=Patient_db mysql:latest"
                 sh "docker run -d --name mysql-department -p 3308:3306 -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} -e MYSQL_DATABASE=Department_db mysql:latest"
-                sleep 30 // Wait for databases to initialize
+                sleep 30
             }
         }
         stage('Deploy Dependencies') {
@@ -129,7 +130,7 @@ pipeline {
                 sh 'curl -f http://localhost:${CONFIG_SERVER_PORT}/medical-service/default || exit 1'
                 sh 'curl -v -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsInN1YiI6ImFkbWluIiwiaWF0IjoxNzQyMjk4ODcxLCJleHAiOjE3NDMxNjI4NzF9.xg9picu1mzvwHTTQJf2IdWQ1tTg9ZNeQctyUKC1pjPc" http://localhost:${API_GATEWAY_PORT}/medical/doctors || exit 1'
                 sh 'curl -v -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsInN1YiI6ImFkbWluIiwiaWF0IjoxNzQyMjk4ODcxLCJleHAiOjE3NDMxNjI4NzF9.xg9picu1mzvwHTTQJf2IdWQ1tTg9ZNeQctyUKC1pjPc" http://localhost:${API_GATEWAY_PORT}/patient/medical-records || exit 1'
-                sh 'curl -v -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsInN1YiI6ImFkbWluIiwiaWF0IjoxNzQyMjk4ODcxLCJleHAiOjE3NDMxNjI8NzF9.xg9picu1mzvwHTTQJf2IdWQ1tTg9ZNeQctyUKC1pjPc" http://localhost:${API_GATEWAY_PORT}/department/departments || exit 1'
+                sh 'curl -v -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsInN1YiI6ImFkbWluIiwiaWF0IjoxNzQyMjk4ODcxLCJleHAiOjE3NDMxNjI4NzF9.xg9picu1mzvwHTTQJf2IdWQ1tTg9ZNeQctyUKC1pjPc" http://localhost:${API_GATEWAY_PORT}/department/departments || exit 1'
             }
         }
     }
