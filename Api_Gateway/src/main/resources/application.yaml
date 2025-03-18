@@ -1,0 +1,31 @@
+server:
+  port: 8100
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://service-registry:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+    hostname: localhost
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+
+spring:
+  main:
+    web-application-type: reactive
+  application:
+    name: api-gateway
+  config:
+    import: "optional:configserver:http://localhost:8104"
+
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE
+    org.springframework.cloud.loadbalancer: TRACE
+    com.netflix.discovery: DEBUG

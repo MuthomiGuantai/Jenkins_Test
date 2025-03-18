@@ -1,0 +1,12 @@
+server:
+  port: 8102
+
+eureka:
+  client:
+    service-url:
+      defaultZone: https://github.com/MuthomiGuantai/Hospital/tree/department/Patient_Service
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
