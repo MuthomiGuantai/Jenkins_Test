@@ -18,7 +18,7 @@ spring:
     password: Clearme@1824
     driver-class-name: com.mysql.cj.jdbc.Driver
   application:
-    name: department_service
+    name: DEPARTMENT_SERVICE
 
 eureka:
   client:

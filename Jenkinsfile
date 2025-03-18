@@ -65,17 +65,29 @@ pipeline {
                 }
             }
         }
+        stage('Setup Databases') {
+            steps {
+                // Start MySQL container for Medical_Service
+                sh 'docker run -d --name mysql-medical -p 3306:3306 -e MYSQL_ROOT_PASSWORD=${Clearme@1824} -e MYSQL_DATABASE=Medical mysql:latest'
+                // Start MySQL container for Patient_Service on a different port
+                sh 'docker run -d --name mysql-patient -p 3307:3306 -e MYSQL_ROOT_PASSWORD=${Clearme@1824} -e MYSQL_DATABASE=Patient_db mysql:latest'
+                // Start MySQL container for Department_Service on a different port
+                sh 'docker run -d --name mysql-department -p 3308:3306 -e MYSQL_ROOT_PASSWORD=${Clearme@1824} -e MYSQL_DATABASE=Department_db mysql:latest'
+                // Wait for all databases to be ready
+                sleep 30
+            }
+        }
         stage('Deploy Dependencies') {
             steps {
                 // Deploy Service Registry (Eureka) first
                 dir('Service_Registry') {
                     sh 'java -jar target/Service_Registry-0.0.1-SNAPSHOT.jar &'
-                    sleep 20 // Wait for Eureka to start
+                    sleep 60 // Wait for Eureka to start
                 }
                 // Deploy Config Server next
                 dir('Config_Server') {
                     sh 'java -jar target/Config_Server-0.0.1-SNAPSHOT.jar &'
-                    sleep 20 // Wait for Config Server to start
+                    sleep 60 // Wait for Config Server to start
                 }
             }
         }
