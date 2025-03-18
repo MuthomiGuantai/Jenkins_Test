@@ -20,9 +20,6 @@ public class ApiGatewayApplication {
 
 	private final LoadBalancerClient loadBalancerClient;
 
-	// Hardcoded JWT token for demonstration (replace with dynamic retrieval in production)
-	private static final String JWT_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsInN1YiI6ImFkbWluIiwiaWF0IjoxNzQyMjg2ODE4LCJleHAiOjE3NDMxNTA4MTh9.R5nILb4sbhE67fkNpn8HU7SU0ZdWE39dZ-UTwXIThp0";
-
 	public ApiGatewayApplication(LoadBalancerClient loadBalancerClient) {
 		this.loadBalancerClient = loadBalancerClient;
 		logger.info("ApiGatewayApplication initialized with LoadBalancerClient");
@@ -41,28 +38,22 @@ public class ApiGatewayApplication {
 				.route("medical_service", r -> {
 					logger.debug("Configuring route for medical_service with path /medical/**");
 					return r.path("/medical/**")
-							.filters(f -> f
-									.rewritePath("/medical/(?<remaining>.*)", "/${remaining}")
-									.filter(new LoadBalancerGatewayFilter(loadBalancerClient))
-									.addRequestHeader("Authorization", JWT_TOKEN)) // Add JWT header
+							.filters(f -> f.rewritePath("/medical/(?<remaining>.*)", "/${remaining}")
+									.filter(new LoadBalancerGatewayFilter(loadBalancerClient)))
 							.uri("lb://MEDICAL_SERVICE");
 				})
 				.route("patient_service", r -> {
 					logger.debug("Configuring route for patient_service with path /patient/**");
 					return r.path("/patient/**")
-							.filters(f -> f
-									.rewritePath("/patient/(?<remaining>.*)", "/${remaining}")
-									.filter(new LoadBalancerGatewayFilter(loadBalancerClient))
-									.addRequestHeader("Authorization", JWT_TOKEN)) // Add JWT header
+							.filters(f -> f.rewritePath("/patient/(?<remaining>.*)", "/${remaining}")
+									.filter(new LoadBalancerGatewayFilter(loadBalancerClient)))
 							.uri("lb://PATIENT_SERVICE");
 				})
 				.route("department_service", r -> {
 					logger.debug("Configuring route for department_service with path /department/**");
 					return r.path("/department/**")
-							.filters(f -> f
-									.rewritePath("/department/(?<remaining>.*)", "/${remaining}")
-									.filter(new LoadBalancerGatewayFilter(loadBalancerClient))
-									.addRequestHeader("Authorization", JWT_TOKEN)) // Add JWT header
+							.filters(f -> f.rewritePath("/department/(?<remaining>.*)", "/${remaining}")
+									.filter(new LoadBalancerGatewayFilter(loadBalancerClient)))
 							.uri("lb://DEPARTMENT_SERVICE");
 				})
 				.build();
