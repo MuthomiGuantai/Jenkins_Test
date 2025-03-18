@@ -85,7 +85,7 @@ pipeline {
                     steps {
                         dir('Api_Gateway') {
                             sh 'java -jar target/Api_Gateway-0.0.1-SNAPSHOT.jar &'
-                            sleep 20
+                            sleep 60
                         }
                     }
                 }
@@ -93,7 +93,7 @@ pipeline {
                     steps {
                         dir('Medical_Service') {
                             sh 'java -jar target/Medical_Service-0.0.1-SNAPSHOT.jar &'
-                            sleep 20
+                            sleep 60
                         }
                     }
                 }
@@ -101,7 +101,7 @@ pipeline {
                     steps {
                         dir('Patient_Service') {
                             sh 'java -jar target/Patient_Service-0.0.1-SNAPSHOT.jar &'
-                            sleep 20
+                            sleep 60
                         }
                     }
                 }
@@ -109,7 +109,7 @@ pipeline {
                     steps {
                         dir('Department_Service') {
                             sh 'java -jar target/Department_Service-0.0.1-SNAPSHOT.jar &'
-                            sleep 20
+                            sleep 60
                         }
                     }
                 }
