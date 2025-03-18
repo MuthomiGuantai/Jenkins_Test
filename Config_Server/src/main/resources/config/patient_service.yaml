@@ -4,7 +4,14 @@ server:
 eureka:
   client:
     service-url:
-      defaultZone: https://github.com/MuthomiGuantai/Hospital/tree/department/Patient_Service
+      defaultZone: http://service-registry:8761/eureka/
+    enabled: true
+
+spring:
+  application:
+    name: PATIENT_SERVICE
+  config:
+    import: optional:configserver:http://localhost:8104
 
 management:
   tracing:
