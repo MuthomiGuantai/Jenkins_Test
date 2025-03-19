@@ -1,7 +1,4 @@
 pipeline {
-    agent {
-        label 'docker' // Ensure this node has Docker installed
-    }
     tools {
         maven 'Maven3'
     }
